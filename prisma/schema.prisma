@@ -1,0 +1,138 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String?  @unique
+  phone     String?  @unique
+  createdAt DateTime @default(now())
+  tasks     Task[]
+  ideas     Idea[]
+  focus     FocusSession[]
+  sleep     SleepSession[]
+  rewards   Reward[]
+  events    Event[]
+  emailOtps EmailOtp[]
+  phoneOtps PhoneOtp[]
+  
+  @@index([email])
+  @@index([phone])
+}
+
+model Task {
+  id        String   @id @default(cuid())
+  uid       String
+  user      User     @relation(fields: [uid], references: [id])
+  title     String
+  type      TaskType
+  due       DateTime?
+  substeps  String[] @default([])
+  status    TaskStatus @default(open)
+  createdAt DateTime @default(now())
+}
+
+enum TaskType {
+  free
+  ddl
+}
+
+enum TaskStatus {
+  open
+  done
+  deferred
+}
+
+model FocusSession {
+  id         String   @id @default(cuid())
+  uid        String
+  user       User     @relation(fields: [uid], references: [id])
+  mode       Int
+  start      DateTime @default(now())
+  end        DateTime?
+  interrupts Int      @default(0)
+  notes      String?
+}
+
+model Idea {
+  id        String   @id @default(cuid())
+  uid       String
+  user      User     @relation(fields: [uid], references: [id])
+  text      String?
+  audioRef  String?
+  context   String?
+  createdAt DateTime @default(now())
+  status    IdeaStatus @default(inbox)
+}
+
+enum IdeaStatus {
+  inbox
+  archived
+  converted
+}
+
+model SleepSession {
+  id         String   @id @default(cuid())
+  uid        String
+  user       User     @relation(fields: [uid], references: [id])
+  soundscape String
+  duration   Int
+  endedBy    String?
+}
+
+model Reward {
+  id        String   @id @default(cuid())
+  uid       String
+  user      User     @relation(fields: [uid], references: [id])
+  type      RewardType
+  points    Int
+  createdAt DateTime @default(now())
+}
+
+enum RewardType {
+  focus
+  steps
+  sleep
+}
+
+model EmailOtp {
+  id         String   @id @default(cuid())
+  email      String
+  code       String
+  expiresAt  DateTime
+  consumedAt DateTime?
+  createdAt  DateTime @default(now())
+  user       User?    @relation(fields: [userId], references: [id])
+  userId     String?
+  @@index([email])
+}
+
+model PhoneOtp {
+  id         String   @id @default(cuid())
+  phone      String
+  code       String
+  expiresAt  DateTime
+  consumedAt DateTime?
+  createdAt  DateTime @default(now())
+  user       User?    @relation(fields: [userId], references: [id])
+  userId     String?
+  @@index([phone])
+}
+
+model Event {
+  id        String   @id @default(cuid())
+  uid       String?
+  user      User?    @relation(fields: [uid], references: [id])
+  name      String
+  data      Json?
+  createdAt DateTime @default(now())
+  @@index([uid])
+  @@index([name])
+}
+
+
