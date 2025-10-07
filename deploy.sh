@@ -10,11 +10,12 @@ echo "================================"
 
 # 检查参数
 if [ $# -eq 0 ]; then
-    echo "用法: ./deploy.sh [render|fly|railway]"
+    echo "用法: ./deploy.sh [render|netlify|fly|railway]"
     echo ""
     echo "平台选择:"
     echo "  render   - 部署到 Render (免费，网页部署)"
-    echo "  fly      - 部署到 Fly.io (命令行部署)"
+    echo "  netlify  - 部署到 Netlify (免费，命令行部署)"
+    echo "  fly      - 部署到 Fly.io (需要信用卡)"
     echo "  railway  - 部署到 Railway (命令行部署)"
     exit 1
 fi
@@ -36,6 +37,34 @@ case $PLATFORM in
         echo "6. 点击 'Create Web Service'"
         echo ""
         echo "✅ Render 部署完成！"
+        ;;
+        
+    "netlify")
+        echo "🌐 部署到 Netlify..."
+        
+        # 检查 netlify CLI 是否安装
+        if ! command -v netlify &> /dev/null; then
+            echo "❌ Netlify CLI 未安装，正在安装..."
+            npm install -g netlify-cli
+        fi
+        
+        # 登录 Netlify
+        echo "🔐 登录 Netlify..."
+        netlify login
+        
+        # 初始化站点
+        echo "🚀 初始化站点..."
+        netlify init
+        
+        # 设置环境变量
+        echo "⚙️ 设置环境变量..."
+        netlify env:set DATABASE_URL "postgresql://neondb_owner:npg_svEAJiOB41ZR@ep-late-forest-a1clkrf8-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+        
+        # 部署
+        echo "🚀 开始部署..."
+        netlify deploy --prod
+        
+        echo "✅ Netlify 部署完成！"
         ;;
         
     "fly")
